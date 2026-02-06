@@ -1,9 +1,17 @@
+import { Metadata } from 'next'
 import { Navbar } from '@/components/Navbar'
 import Link from 'next/link'
 
-export const metadata = {
-  title: 'Privacy Policy | Drift Tapes',
-  description: 'Privacy Policy for Drift Tapes - how we collect, use, and protect your information.',
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Privacy Policy for Drift Tapes. Learn how we collect, use, and protect your information when you use our lofi music store.',
+  alternates: {
+    canonical: 'https://drifttapes.com/privacy',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function PrivacyPage() {

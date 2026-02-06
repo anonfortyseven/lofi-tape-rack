@@ -1,11 +1,21 @@
+import { Metadata } from 'next'
 import { Navbar } from '@/components/Navbar'
 import Link from 'next/link'
 import artistsData from '@/data/artists.json'
 import albumsData from '@/data/albums.json'
 
-export const metadata = {
-  title: 'About | Drift Tapes',
-  description: 'Learn about Drift Tapes - our mission to bring premium lofi music to listeners worldwide while supporting independent artists.',
+export const metadata: Metadata = {
+  title: 'About',
+  description: 'Learn about Drift Tapes - our mission to bring premium lofi music to listeners worldwide while supporting independent artists. 80% of every sale goes directly to creators.',
+  keywords: ['about drift tapes', 'lofi music store', 'support artists', 'independent music'],
+  alternates: {
+    canonical: 'https://drifttapes.com/about',
+  },
+  openGraph: {
+    title: 'About | Drift Tapes',
+    description: 'Our mission: bring premium lofi music to listeners worldwide while supporting independent artists.',
+    url: 'https://drifttapes.com/about',
+  },
 }
 
 export default function AboutPage() {

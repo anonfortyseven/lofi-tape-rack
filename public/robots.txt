@@ -1,0 +1,24 @@
+# Robots.txt for Drift Tapes
+# https://drifttapes.com
+
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://drifttapes.com/sitemap.xml
+
+# Disallow admin/auth paths
+Disallow: /auth/
+Disallow: /api/
+Disallow: /profile/
+Disallow: /checkout/
+Disallow: /library/
+
+# Allow search engines to index all public content
+Allow: /browse
+Allow: /artists
+Allow: /albums
+Allow: /about
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1

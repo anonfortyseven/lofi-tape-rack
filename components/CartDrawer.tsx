@@ -2,15 +2,37 @@
 
 import { useCart } from '@/contexts/CartContext'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export function CartDrawer() {
   const { items, isOpen, total, removeItem, clearCart, closeCart } = useCart()
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
+  const [newItemId, setNewItemId] = useState<string | null>(null)
+  const [prevItemCount, setPrevItemCount] = useState(items.length)
+
+  // Track new items being added
+  useEffect(() => {
+    if (items.length > prevItemCount && items.length > 0) {
+      const lastItem = items[items.length - 1]
+      setNewItemId(lastItem.id)
+      setTimeout(() => setNewItemId(null), 600)
+    }
+    setPrevItemCount(items.length)
+  }, [items, prevItemCount])
+
+  // Handle open/close animations
+  useEffect(() => {
+    if (isOpen) {
+      setIsAnimating(true)
+      setIsClosing(false)
+    }
+  }, [isOpen])
 
   // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeCart()
+      if (e.key === 'Escape') handleClose()
     }
     if (isOpen) {
       document.addEventListener('keydown', handleEscape)
@@ -20,20 +42,39 @@ export function CartDrawer() {
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = ''
     }
-  }, [isOpen, closeCart])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen])
 
-  if (!isOpen) return null
+  const handleClose = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      closeCart()
+      setIsAnimating(false)
+      setIsClosing(false)
+    }, 250)
+  }
+
+  if (!isOpen && !isAnimating) return null
 
   return (
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-        onClick={closeCart}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity duration-300 ${
+          isClosing ? 'opacity-0' : 'opacity-100'
+        }`}
+        onClick={handleClose}
       />
       
       {/* Drawer */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-zinc-900 border-l border-zinc-800 shadow-2xl z-50 flex flex-col animate-slide-in-right">
+      <div 
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-zinc-900 border-l border-zinc-800 shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-out ${
+          isClosing ? 'translate-x-full' : 'translate-x-0'
+        }`}
+        style={{
+          animation: !isClosing ? 'slide-in-right 0.3s ease-out' : undefined
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-zinc-800">
           <div className="flex items-center gap-3">
@@ -50,7 +91,7 @@ export function CartDrawer() {
             </div>
           </div>
           <button 
-            onClick={closeCart}
+            onClick={handleClose}
             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,7 +115,7 @@ export function CartDrawer() {
               </p>
               <Link
                 href="/browse"
-                onClick={closeCart}
+                onClick={handleClose}
                 className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-semibold px-6 py-3 rounded-xl transition-all hover:scale-105"
               >
                 Browse Tapes
@@ -82,19 +123,25 @@ export function CartDrawer() {
             </div>
           ) : (
             <div className="space-y-3">
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <div 
                   key={item.id}
-                  className="flex items-start gap-3 p-3 bg-zinc-800/50 rounded-xl border border-zinc-800"
+                  className={`flex items-start gap-3 p-3 bg-zinc-800/50 rounded-xl border border-zinc-800 transition-all duration-300 ${
+                    newItemId === item.id ? 'animate-item-pop ring-2 ring-amber-500/50' : ''
+                  }`}
+                  style={{
+                    animation: newItemId === item.id ? 'item-pop 0.4s ease-out' : undefined,
+                    animationDelay: `${index * 50}ms`
+                  }}
                 >
                   {/* Album art placeholder */}
                   <Link 
                     href={`/albums/${item.albumSlug}`}
-                    onClick={closeCart}
+                    onClick={handleClose}
                     className="flex-shrink-0"
                   >
                     <div 
-                      className="w-16 h-16 rounded-lg flex items-center justify-center"
+                      className="w-16 h-16 rounded-lg flex items-center justify-center transition-transform hover:scale-105"
                       style={{ 
                         background: `linear-gradient(135deg, ${item.coverGradient.primary}, ${item.coverGradient.secondary})` 
                       }}
@@ -110,14 +157,14 @@ export function CartDrawer() {
                   <div className="flex-1 min-w-0">
                     <Link 
                       href={`/albums/${item.albumSlug}`}
-                      onClick={closeCart}
+                      onClick={handleClose}
                       className="font-medium text-white hover:text-amber-500 transition-colors text-sm block truncate"
                     >
                       {item.title}
                     </Link>
                     <Link 
                       href={`/artists/${item.artistSlug}`}
-                      onClick={closeCart}
+                      onClick={handleClose}
                       className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors truncate block"
                     >
                       {item.artistName}
@@ -130,7 +177,7 @@ export function CartDrawer() {
                   {/* Remove button */}
                   <button 
                     onClick={() => removeItem(item.id)}
-                    className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition-colors"
+                    className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition-all hover:scale-110"
                     title="Remove from cart"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -163,7 +210,7 @@ export function CartDrawer() {
             {/* Checkout button */}
             <Link
               href="/checkout"
-              onClick={closeCart}
+              onClick={handleClose}
               className="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-semibold px-6 py-4 rounded-xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -192,8 +239,18 @@ export function CartDrawer() {
             transform: translateX(0);
           }
         }
-        .animate-slide-in-right {
-          animation: slide-in-right 0.3s ease-out;
+        @keyframes item-pop {
+          0% {
+            opacity: 0;
+            transform: scale(0.8) translateX(20px);
+          }
+          50% {
+            transform: scale(1.02) translateX(0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateX(0);
+          }
         }
       `}</style>
     </>

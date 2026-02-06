@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { useToast } from './ToastContext'
 
 export interface CartItem {
   id: string
@@ -38,6 +39,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  
+  // Get toast function - may be undefined if ToastProvider isn't mounted yet
+  let showToast: ((message: string, type?: 'success' | 'error' | 'info') => void) | undefined
+  try {
+    const toast = useToast()
+    showToast = toast.showToast
+  } catch {
+    // ToastProvider not available yet, that's fine
+  }
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -67,19 +77,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems(prev => {
       // Don't add duplicates
       if (prev.some(i => i.id === item.id)) {
+        showToast?.(`"${item.title}" is already in your cart`, 'info')
         return prev
       }
+      showToast?.(`Added "${item.title}" to cart`, 'success')
       return [...prev, item]
     })
-  }, [])
+  }, [showToast])
 
   const removeItem = useCallback((id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id))
-  }, [])
+    setItems(prev => {
+      const item = prev.find(i => i.id === id)
+      if (item) {
+        showToast?.(`Removed "${item.title}" from cart`, 'info')
+      }
+      return prev.filter(item => item.id !== id)
+    })
+  }, [showToast])
 
   const clearCart = useCallback(() => {
     setItems([])
-  }, [])
+    showToast?.('Cart cleared', 'info')
+  }, [showToast])
 
   const isInCart = useCallback((id: string) => {
     return items.some(item => item.id === id)

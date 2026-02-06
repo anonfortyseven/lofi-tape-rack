@@ -136,3 +136,154 @@ main {
     transform: translateY(0);
   }
 }
+
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Album card hover effects */
+.album-card {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.album-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5),
+              0 0 30px rgba(245, 158, 11, 0.1);
+}
+
+/* Artist card hover effects */
+.artist-card {
+  transition: transform 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.artist-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.4),
+              0 0 24px rgba(245, 158, 11, 0.08);
+}
+
+/* Micro-interaction for buttons */
+.btn-hover {
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.btn-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-hover:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Cover image glow on hover */
+.cover-glow {
+  transition: box-shadow 0.3s ease-out;
+}
+
+.cover-glow:hover {
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.2),
+              0 20px 40px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Subtle scale for interactive elements */
+.interactive-scale {
+  transition: transform 0.15s ease-out;
+}
+
+.interactive-scale:hover {
+  transform: scale(1.05);
+}
+
+.interactive-scale:active {
+  transform: scale(0.98);
+}
+
+/* Track list row hover */
+.track-row {
+  transition: background-color 0.15s ease-out;
+}
+
+/* Link underline animation */
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  transition: width 0.2s ease-out;
+}
+
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* Mobile touch improvements */
+@media (max-width: 640px) {
+  /* Disable hover transforms on mobile for better performance */
+  .album-card:hover {
+    transform: none;
+  }
+  
+  /* Make touch targets larger */
+  .album-card {
+    touch-action: manipulation;
+  }
+  
+  /* Reduce animation complexity on mobile */
+  .animate-shimmer {
+    animation: shimmer 2.5s infinite;
+  }
+  
+  /* Increase tap area for buttons */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better text readability on small screens */
+  .text-xs {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  main {
+    animation: none;
+  }
+  
+  .animate-shimmer {
+    animation: none;
+  }
+}
+
+/* Safe area padding for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

@@ -1,9 +1,17 @@
+import { Metadata } from 'next'
 import { Navbar } from '@/components/Navbar'
 import Link from 'next/link'
 
-export const metadata = {
-  title: 'Terms of Service | Drift Tapes',
-  description: 'Terms of Service for Drift Tapes - the lofi music store.',
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'Terms of Service for Drift Tapes. Read our terms for using the lofi music store, purchasing music, and licensing.',
+  alternates: {
+    canonical: 'https://drifttapes.com/terms',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function TermsPage() {

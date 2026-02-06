@@ -11,6 +11,102 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
+// Animated visualization bars
+function VisualizationBars({ isPlaying, barCount = 5 }: { isPlaying: boolean; barCount?: number }) {
+  return (
+    <div className="flex items-end gap-[2px] h-4">
+      {Array.from({ length: barCount }).map((_, i) => (
+        <div
+          key={i}
+          className={`w-1 bg-amber-500 rounded-full transition-all ${
+            isPlaying ? 'animate-equalizer' : 'h-1'
+          }`}
+          style={{
+            animationDelay: `${i * 0.1}s`,
+            height: isPlaying ? undefined : '4px',
+          }}
+        />
+      ))}
+      <style jsx>{`
+        @keyframes equalizer {
+          0%, 100% { height: 4px; }
+          25% { height: 12px; }
+          50% { height: 6px; }
+          75% { height: 16px; }
+        }
+        .animate-equalizer {
+          animation: equalizer 0.8s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// Mini player component (collapsed state)
+function MiniPlayer({ 
+  currentTrack, 
+  isPlaying, 
+  toggle, 
+  onExpand 
+}: { 
+  currentTrack: NonNullable<ReturnType<typeof useAudioPlayer>['currentTrack']>
+  isPlaying: boolean
+  toggle: () => void
+  onExpand: () => void
+}) {
+  return (
+    <div 
+      className="fixed bottom-4 right-4 z-50 bg-zinc-900/95 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl p-3 flex items-center gap-3 cursor-pointer hover:bg-zinc-800/95 transition-colors group"
+      onClick={onExpand}
+    >
+      {/* Album art with visualization */}
+      <div 
+        className="w-12 h-12 rounded-lg flex items-center justify-center relative flex-shrink-0"
+        style={{ 
+          background: `linear-gradient(135deg, ${currentTrack.coverGradient.primary}, ${currentTrack.coverGradient.secondary})` 
+        }}
+      >
+        <div className="absolute inset-0 flex items-center justify-center">
+          <VisualizationBars isPlaying={isPlaying} barCount={3} />
+        </div>
+      </div>
+      
+      {/* Track info */}
+      <div className="min-w-0 max-w-[140px]">
+        <p className="text-white font-medium text-sm truncate">{currentTrack.title}</p>
+        <p className="text-zinc-500 text-xs truncate">{currentTrack.artistName}</p>
+      </div>
+      
+      {/* Play/Pause button */}
+      <button 
+        onClick={(e) => {
+          e.stopPropagation()
+          toggle()
+        }}
+        className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform flex-shrink-0"
+        title={isPlaying ? 'Pause' : 'Play'}
+      >
+        {isPlaying ? (
+          <svg className="w-5 h-5 text-zinc-900" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+          </svg>
+        ) : (
+          <svg className="w-5 h-5 text-zinc-900 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        )}
+      </button>
+      
+      {/* Expand indicator */}
+      <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+        <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        </svg>
+      </div>
+    </div>
+  )
+}
+
 export function AudioPlayer() {
   const {
     currentTrack,
@@ -38,6 +134,7 @@ export function AudioPlayer() {
   const [isDraggingProgress, setIsDraggingProgress] = useState(false)
   const [isDraggingVolume, setIsDraggingVolume] = useState(false)
   const [displayTime, setDisplayTime] = useState(currentTime)
+  const [isMiniMode, setIsMiniMode] = useState(false)
   
   // Simulate progress for demo when no actual audio
   useEffect(() => {
@@ -85,6 +182,20 @@ export function AudioPlayer() {
 
   if (!isVisible || !currentTrack) return null
 
+  // Render mini player mode
+  if (isMiniMode) {
+    return (
+      <>
+        <MiniPlayer 
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          toggle={toggle}
+          onExpand={() => setIsMiniMode(false)}
+        />
+      </>
+    )
+  }
+
   const progress = duration > 0 ? (displayTime / duration) * 100 : 0
   const effectiveVolume = isMuted ? 0 : volume
 
@@ -99,7 +210,7 @@ export function AudioPlayer() {
       )}
 
       {/* Main player bar */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-800 transition-all duration-300 ${
+      <div className={`fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-800 transition-all duration-300 animate-player-slide-up ${
         isExpanded ? 'h-96' : 'h-20'
       }`}>
         {/* Expanded queue view */}
@@ -122,11 +233,7 @@ export function AudioPlayer() {
                     >
                       <div className="w-8 text-center">
                         {index === currentIndex && isPlaying ? (
-                          <div className="flex items-center justify-center gap-0.5">
-                            <div className="w-1 h-3 bg-amber-500 rounded-full animate-pulse" />
-                            <div className="w-1 h-4 bg-amber-500 rounded-full animate-pulse delay-75" />
-                            <div className="w-1 h-2 bg-amber-500 rounded-full animate-pulse delay-150" />
-                          </div>
+                          <VisualizationBars isPlaying={true} barCount={3} />
                         ) : (
                           <span className="text-zinc-500 text-sm">{index + 1}</span>
                         )}
@@ -156,18 +263,25 @@ export function AudioPlayer() {
 
         {/* Player controls */}
         <div className="h-20 flex items-center px-4 gap-4">
-          {/* Track info */}
+          {/* Track info with visualization */}
           <div className="flex items-center gap-3 min-w-[180px] max-w-[300px]">
             <div 
-              className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg"
+              className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg relative overflow-hidden"
               style={{ 
                 background: `linear-gradient(135deg, ${currentTrack.coverGradient.primary}, ${currentTrack.coverGradient.secondary})` 
               }}
             >
+              {/* Cassette spools */}
               <div className="w-5 h-3.5 bg-zinc-900/50 rounded-sm flex items-center justify-center gap-1">
                 <div className={`w-1.5 h-1.5 border border-zinc-600 rounded-full ${isPlaying ? 'animate-spin' : ''}`} />
                 <div className={`w-1.5 h-1.5 border border-zinc-600 rounded-full ${isPlaying ? 'animate-spin' : ''}`} />
               </div>
+              {/* Visualization overlay */}
+              {isPlaying && (
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2">
+                  <VisualizationBars isPlaying={true} barCount={4} />
+                </div>
+              )}
             </div>
             <div className="min-w-0">
               <Link 
@@ -250,6 +364,17 @@ export function AudioPlayer() {
 
           {/* Right controls */}
           <div className="flex items-center gap-3 min-w-[180px] justify-end">
+            {/* Mini mode toggle */}
+            <button 
+              onClick={() => setIsMiniMode(true)}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+              title="Mini player"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
             {/* Queue button */}
             <button 
               onClick={toggleExpand}
@@ -317,6 +442,22 @@ export function AudioPlayer() {
 
       {/* Spacer to prevent content from being hidden behind player */}
       <div className="h-20" />
+
+      <style jsx>{`
+        @keyframes player-slide-up {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        .animate-player-slide-up {
+          animation: player-slide-up 0.3s ease-out;
+        }
+      `}</style>
     </>
   )
 }

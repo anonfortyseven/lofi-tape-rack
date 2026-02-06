@@ -1,0 +1,3 @@
+module.exports=[61300,a=>{"use strict";function b({children:a}){return a}a.s(["default",()=>b,"metadata",0,{title:"Create Account",description:"Create a free Drift Tapes account. Get access to exclusive drops, early releases, and build your personal lofi music library.",alternates:{canonical:"https://drifttapes.com/signup"},openGraph:{title:"Create Account | Drift Tapes",description:"Join thousands of lofi lovers. Get exclusive drops and early access."}}])}];
+
+//# sourceMappingURL=app_signup_layout_tsx_00939f34._.js.map

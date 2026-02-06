@@ -1,10 +1,20 @@
+import { Metadata } from 'next'
 import { Navbar } from '@/components/Navbar'
 import Link from 'next/link'
 import artistsData from '@/data/artists.json'
 
-export const metadata = {
-  title: 'Artists | Drift Tapes',
-  description: 'Discover our curated roster of lofi artists from around the world.',
+export const metadata: Metadata = {
+  title: 'Lofi Artists',
+  description: `Discover our curated roster of ${artistsData.artists.length} lofi artists from around the world. From Tokyo jazz cafés to Berlin synth caves, meet the producers behind the beats.`,
+  keywords: ['lofi artists', 'lofi producers', 'beat makers', 'lofi music', 'independent artists'],
+  alternates: {
+    canonical: 'https://drifttapes.com/artists',
+  },
+  openGraph: {
+    title: 'Lofi Artists | Drift Tapes',
+    description: 'Meet the producers behind the beats. Curated lofi artists from around the world.',
+    url: 'https://drifttapes.com/artists',
+  },
 }
 
 export default function ArtistsPage() {
@@ -38,7 +48,7 @@ export default function ArtistsPage() {
               <Link
                 key={artist.id}
                 href={`/artists/${artist.slug}`}
-                className="group bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 hover:bg-zinc-900/80 transition-all"
+                className="group artist-card bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 hover:bg-zinc-900/80"
               >
                 {/* Artist Avatar */}
                 <div 
